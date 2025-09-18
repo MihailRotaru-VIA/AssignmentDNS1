@@ -24,7 +24,7 @@ public class ViewPostsView
             List<Comment> comments = _commentRepository.GetManyAsync().ToList();
             foreach (Post post in posts)
             {
-                Console.WriteLine($"[{post.Id}]      [{post.UserId}]    [{post.Title}]");
+                Console.WriteLine($"[{post.Id}]       [{post.UserId}]        [{post.Title}]");
             }
             Console.WriteLine("[0] X Exit");
             Console.WriteLine("Which post do you want to see?");

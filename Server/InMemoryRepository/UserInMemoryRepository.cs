@@ -7,6 +7,11 @@ public class UserInMemoryRepository : IUserRepository
 {
     private List<User> users = new();
 
+    public UserInMemoryRepository()
+    {
+        AddUserDummies();
+    }
+
     public Task<User> AddAsync(User user)
     {
         user.Id = users.Any() ? users.Max(p => p.Id) + 1 : 1;
@@ -54,5 +59,24 @@ public class UserInMemoryRepository : IUserRepository
     public IQueryable<User> GetManyAsync()
     {
         return  users.AsQueryable();
+    }
+
+    private void AddUserDummies()
+    {
+        User user = new User("mikelxrd", "password11");
+        user.Id = 1;
+        users.Add(user);
+        user = new User("troller1", "password121");
+        user.Id = 2;
+        users.Add(user);
+        user = new User("crvz", "documentationqueen");
+        user.Id = 3;
+        users.Add(user);
+        user = new User("richi", "dinosaur");
+        user.Id = 4;
+        users.Add(user);
+        user = new User("patrik", "katka");
+        user.Id = 5;
+        users.Add(user);
     }
 }
