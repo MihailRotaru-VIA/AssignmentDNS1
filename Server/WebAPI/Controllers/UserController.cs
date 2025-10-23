@@ -62,7 +62,7 @@ public class UserController : ControllerBase
         return Results.Ok(dto);
     }
 
-    [HttpGet]
+    [HttpGet("/users")]
     public async Task<IResult> GetManyUsers([FromQuery] string? username = null)
     {
         List<User> users = _userRepository.GetManyAsync().ToList();
@@ -82,7 +82,7 @@ public class UserController : ControllerBase
         
         foreach (User user in users)
         {
-            if (user.Username == username)
+            if (user.Username.Contains(username))
             {
                 GetManyUsersDto dto = new();
                 dto.Id = user.Id;

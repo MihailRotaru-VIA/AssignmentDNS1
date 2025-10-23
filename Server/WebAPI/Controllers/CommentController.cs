@@ -10,10 +10,12 @@ namespace WebAPI.Controllers;
 public class CommentController : ControllerBase
 {
     private readonly ICommentRepository _commentRepository;
+    private readonly IUserRepository _userRepository;
 
-    public CommentController(ICommentRepository commentRepository)
+    public CommentController(ICommentRepository commentRepository, IUserRepository userRepository)
     {
         _commentRepository = commentRepository;
+        _userRepository = userRepository;
     }
 
     [HttpPost]
@@ -61,47 +63,36 @@ public class CommentController : ControllerBase
         return Results.Ok(dto);
     }
 
-    [HttpGet]
-    public async Task<IResult> GetManyComments([FromQuery] int? postId = null, int? userId = null)
+    [HttpGet("/comments")]
+    public async Task<IResult> GetManyComments()
     {
         List<Comment> comments = _commentRepository.GetManyAsync().ToList();
         List<GetManyCommentsDto> dtos = new();
 
-        if (postId is null && userId is null)
+        foreach (Comment comment in comments)
         {
-            foreach (Comment comment in comments)
-            {
                 GetManyCommentsDto dto = new();
                 dto.Id = comment.Id;
                 dto.Body = comment.Body;
                 dto.UserId = comment.UserId;
                 dto.PostId = comment.PostId;
                 dtos.Add(dto);
-            }
+        }
 
-            return Results.Ok(dtos);
-        } else if (postId is not null && userId is null)
+        return Results.Ok(dtos);
+    }
+
+    [HttpGet("/user/{userId:int}/comments")]
+    public async Task<IResult> GetManyCommentsByUser([FromRoute] int userId, [FromQuery] int? postId = null)
+    {
+        List<Comment> comments = _commentRepository.GetManyAsync().ToList();
+        List<GetManyCommentsDto> dtos = new();
+
+        if (postId is not null)
         {
             foreach (Comment comment in comments)
             {
-                if (comment.PostId == postId)
-                {
-                    GetManyCommentsDto dto = new();
-                    dto.Id = comment.Id;
-                    dto.Body = comment.Body;
-                    dto.UserId = comment.UserId;
-                    dto.PostId = comment.PostId;
-                    dtos.Add(dto);
-                }
-            }
-
-            return Results.Ok(dtos);
-            
-        } else if (postId is null && userId is not null)
-        {
-            foreach (Comment comment in comments)
-            {
-                if (comment.UserId == userId)
+                if (comment.UserId == userId && comment.PostId == postId)
                 {
                     GetManyCommentsDto dto = new();
                     dto.Id = comment.Id;
@@ -117,7 +108,51 @@ public class CommentController : ControllerBase
 
         foreach (Comment comment in comments)
         {
-            if (comment.UserId == userId && comment.PostId == postId)
+            if (comment.UserId == userId)
+            {
+                GetManyCommentsDto dto = new();
+                dto.Id = comment.Id;
+                dto.Body = comment.Body;
+                dto.UserId = comment.UserId;
+                dto.PostId = comment.PostId;
+                dtos.Add(dto);
+            }
+        }
+
+        return Results.Ok(dtos);
+    }
+
+    [HttpGet("/post/{postId:int}/comments")]
+    public async Task<IResult> GetManyCommentsByPostId([FromRoute] int postId, [FromQuery] string? username = null)
+    {
+        List<User> users = _userRepository.GetManyAsync().ToList();
+        List<Comment> comments = _commentRepository.GetManyAsync().ToList();
+        List<GetManyCommentsDto> dtos = new();
+
+        if (username is not null)
+        {
+            foreach (Comment comment in comments)
+            {
+                foreach (User user in users)
+                {
+                    if (comment.PostId == postId && user.Username.Contains(username) && comment.UserId == user.Id)
+                    {
+                        GetManyCommentsDto dto = new();
+                        dto.Id = comment.Id;
+                        dto.Body = comment.Body;
+                        dto.UserId = comment.UserId;
+                        dto.PostId = comment.PostId;
+                        dtos.Add(dto);
+                    }
+                }
+            }
+
+            return Results.Ok(dtos);
+        }
+        
+        foreach (Comment comment in comments)
+        {
+            if (comment.PostId == postId)
             {
                 GetManyCommentsDto dto = new();
                 dto.Id = comment.Id;

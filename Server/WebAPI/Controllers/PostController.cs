@@ -64,12 +64,52 @@ public class PostController : ControllerBase
         return Results.Ok(dto);
     }
 
-    [HttpGet]
-    public async Task<IResult> GetManyPosts([FromQuery] string? title = null)
+    [HttpGet("/user/{userId:int}/posts")]
+    public async Task<IResult> GetPostFromUser([FromRoute] int? userId, [FromQuery] string? title = null)
     {
         List<Post> posts = _postRepository.GetManyAsync().ToList();
         List<GetManyPostsDto> dtos = new();
 
+        if (title is null)
+        {
+            foreach (Post post in posts)
+            {
+                if (post.UserId == userId)
+                {
+                    GetManyPostsDto dto = new();
+                    dto.Id = post.Id;
+                    dto.Title = post.Title;
+                    dto.Body = post.Body;
+                    dto.UserId = post.UserId;
+                    dtos.Add(dto);
+                }
+            }
+
+            return Results.Ok(dtos);
+        }
+
+        foreach (Post post in posts)
+        {
+            if (post.Title.Contains(title) && userId == post.UserId)
+            {
+                GetManyPostsDto dto = new();
+                dto.Id = post.Id;
+                dto.Title = post.Title;
+                dto.Body = post.Body;
+                dto.UserId = post.UserId;
+                dtos.Add(dto);
+            }
+        }
+
+        return Results.Ok(dtos);
+    }
+
+    [HttpGet("/posts")]
+    public async Task<IResult> GetManyPosts([FromQuery] string? title = null)
+    {
+        List<Post> posts = _postRepository.GetManyAsync().ToList();
+        List<GetManyPostsDto> dtos = new();
+        
         if (title is null)
         {
             foreach (Post post in posts)
@@ -87,7 +127,7 @@ public class PostController : ControllerBase
 
         foreach (Post post in posts)
         {
-            if (title == post.Title)
+            if (post.Title.Contains(title))
             {
                 GetManyPostsDto dto = new();
                 dto.Id = post.Id;
